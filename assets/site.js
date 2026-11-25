@@ -18,8 +18,15 @@
   // It starts once the page has loaded, the first contentful paint is on screen and the first screen's own pictures
   // (fetchpriority high) have arrived; "load" alone can come before the first paint on a fast connection.
   var painted = new Promise(function (res) { try { var po = new PerformanceObserver(function (l) { if (l.getEntriesByName('first-contentful-paint').length) { po.disconnect(); res(); } }); po.observe({ type: 'paint', buffered: true }); } catch (e) { res(); } setTimeout(res, 3000); });
-  var heroesIn = function () { return Promise.all($$('img[fetchpriority="high"]').map(function (im) { return im.complete ? 0 : new Promise(function (r) { im.addEventListener('load', r, { once: true }); im.addEventListener('error', r, { once: true }); setTimeout(r, 4000); }); })); };
-  var afterLoad = function (fn, delay) { var go = function () { painted.then(heroesIn).then(function () { setTimeout(function () { (w.requestIdleCallback || function (f) { return setTimeout(f, 1); })(fn, { timeout: 1500 }); }, delay || 0); }); }; if (d.readyState === 'complete') go(); else w.addEventListener('load', go, { once: true }); };
+  // A first-screen picture that has loaded can still be a frame or two from the screen (decode, then paint), and
+  // anything requested in that gap counts against it on a phone test. So the wait is: loaded, decoded, two frames drawn.
+  var wait = function (ms) { return new Promise(function (r) { setTimeout(r, ms); }); };
+  var frames = function () { return Promise.race([new Promise(function (r) { requestAnimationFrame(function () { requestAnimationFrame(function () { r(); }); }); }), wait(500)]).then(function () { return wait(30); }); };
+  var heroesIn = function () { return Promise.all($$('img[fetchpriority="high"]').map(function (im) { return (im.complete ? Promise.resolve() : new Promise(function (r) { im.addEventListener('load', r, { once: true }); im.addEventListener('error', r, { once: true }); setTimeout(r, 4000); })).then(function () { return im.decode && im.naturalWidth ? Promise.race([im.decode().catch(function () {}), wait(1500)]) : 0; }); })).then(frames); };
+  var firstScreen = painted.then(heroesIn);
+  // The web fonts (html.wf, set up in the head script) also wait for the first screen to be drawn.
+  firstScreen.then(function () { if (w.WGF) w.WGF(); });
+  var afterLoad = function (fn, delay) { var go = function () { firstScreen.then(function () { setTimeout(function () { (w.requestIdleCallback || function (f) { return setTimeout(f, 1); })(fn, { timeout: 1500 }); }, delay || 0); }); }; if (d.readyState === 'complete') go(); else w.addEventListener('load', go, { once: true }); };
   // Pictures below the first screen arrive with data-src/data-srcset (the build moves them there), so nothing but the
   // first screen downloads before the page has loaded. show() restores one picture, wake() every picture in a panel.
   // After load the browser's own lazy loading takes over; closed panels (store picker and other dialogs, the phone menu,

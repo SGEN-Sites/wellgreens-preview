@@ -1585,8 +1585,9 @@ ul.hl li::before { content: ''; position: absolute; left: 3px; top: .55em; width
 .dlg { transition: opacity .3s, visibility 0s .3s, content-visibility 0s .3s allow-discrete; }
 /* the footer (already clipped by its own overflow) is laid out when it nears the screen */
 .foot { content-visibility: auto; contain-intrinsic-size: auto 1100px; }
-/* Web fonts come into use with html.wf. On a first visit the head script adds it right after the first paint, so the fonts
-   never compete with the first screen on a slow connection; once they are cached it adds it at once (no swap at all).
+/* Web fonts come into use with html.wf. On a first visit site.js adds it once the first screen, its main picture
+   included, is on screen (the head script adds it after 2.5 s if site.js never runs), so the fonts never compete with
+   the first screen on a slow connection; once they are cached the head script adds it at once (no swap at all).
    Until then the metric-matched fallbacks (fonts.css) hold the same space. */
 :root { --f-display: 'Syne Fallback', Arial, sans-serif; --f-accent: 'Instrument Serif Fallback', 'Times New Roman', Georgia, serif; --f-body: Arial, Helvetica, system-ui, sans-serif; --f-num: Arial, Helvetica, system-ui, sans-serif; }
 :root.wf { --f-display: 'Syne', 'Syne Fallback', Arial, sans-serif; --f-accent: 'Instrument Serif', 'Instrument Serif Fallback', 'Times New Roman', Georgia, serif; --f-body: 'Manrope', Arial, Helvetica, system-ui, sans-serif; --f-num: 'Sora', 'Manrope', Arial, Helvetica, system-ui, sans-serif; }
