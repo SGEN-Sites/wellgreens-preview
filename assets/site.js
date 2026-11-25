@@ -13,6 +13,21 @@
   var ss = { get: function (k) { try { return sessionStorage.getItem(k); } catch (e) { return null; } }, set: function (k, v) { try { sessionStorage.setItem(k, v); } catch (e) {} } };
   var slug = function (v) { return String(v || '').toLowerCase().normalize('NFKD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, ''); };
   var dataUrl = function (p) { return new URL(BASE + 'data/' + p, location.href).href; };
+  // Work the first screen does not need (the hero video, menu data, product rails) waits until the page has loaded and
+  // the main thread is idle, so it never competes with the content people came for on a slow phone connection.
+  // It starts once the page has loaded, the first contentful paint is on screen and the first screen's own pictures
+  // (fetchpriority high) have arrived; "load" alone can come before the first paint on a fast connection.
+  var painted = new Promise(function (res) { try { var po = new PerformanceObserver(function (l) { if (l.getEntriesByName('first-contentful-paint').length) { po.disconnect(); res(); } }); po.observe({ type: 'paint', buffered: true }); } catch (e) { res(); } setTimeout(res, 3000); });
+  var heroesIn = function () { return Promise.all($$('img[fetchpriority="high"]').map(function (im) { return im.complete ? 0 : new Promise(function (r) { im.addEventListener('load', r, { once: true }); im.addEventListener('error', r, { once: true }); setTimeout(r, 4000); }); })); };
+  var afterLoad = function (fn, delay) { var go = function () { painted.then(heroesIn).then(function () { setTimeout(function () { (w.requestIdleCallback || function (f) { return setTimeout(f, 1); })(fn, { timeout: 1500 }); }, delay || 0); }); }; if (d.readyState === 'complete') go(); else w.addEventListener('load', go, { once: true }); };
+  // Pictures below the first screen arrive with data-src/data-srcset (the build moves them there), so nothing but the
+  // first screen downloads before the page has loaded. show() restores one picture, wake() every picture in a panel.
+  // After load the browser's own lazy loading takes over; closed panels (store picker and other dialogs, the phone menu,
+  // the desktop menus) wake when they open.
+  var show = function (im) { var s = im.getAttribute('data-srcset'); if (s != null) { im.setAttribute('srcset', s); im.removeAttribute('data-srcset'); } var u = im.getAttribute('data-src'); if (u != null) { im.setAttribute('src', u); im.removeAttribute('data-src'); } };
+  var wake = function (el) { if (el) $$('img[data-src]', el).forEach(show); };
+  afterLoad(function () { $$('img[data-src]').forEach(function (im) { if (!im.closest('.dlg, .drawer, .mega')) show(im); }); });
+  var nearView = function (el, fn) { if (!('IntersectionObserver' in w)) return fn(); var o = new IntersectionObserver(function (es) { if (es.some(function (e) { return e.isIntersecting; })) { o.disconnect(); fn(); } }, { rootMargin: '700px 0px' }); o.observe(el); };
 
   /* ---------- store state ---------- */
   var DEFAULT = WG.defaultStore || 'pacific-beach-de-soto-st';
@@ -71,7 +86,7 @@
 
   /* ---------- dialogs ---------- */
   var lastFocus = null;
-  function openDlg(dlg) { if (!dlg) return; lastFocus = d.activeElement; dlg.classList.add('open'); dlg.setAttribute('aria-hidden', 'false'); d.documentElement.style.overflow = 'hidden'; var f = $('[data-autofocus]', dlg) || $('button, input, a[href]', dlg); if (f) setTimeout(function () { try { f.focus({ preventScroll: true }); } catch (e) {} }, 50); }
+  function openDlg(dlg) { if (!dlg) return; wake(dlg); lastFocus = d.activeElement; dlg.classList.add('open'); dlg.setAttribute('aria-hidden', 'false'); d.documentElement.style.overflow = 'hidden'; var f = $('[data-autofocus]', dlg) || $('button, input, a[href]', dlg); if (f) setTimeout(function () { try { f.focus({ preventScroll: true }); } catch (e) {} }, 50); }
   function closeDlg(dlg) { if (!dlg || !dlg.classList.contains('open')) return; dlg.classList.remove('open'); dlg.setAttribute('aria-hidden', 'true'); d.documentElement.style.overflow = ''; if (lastFocus) try { lastFocus.focus({ preventScroll: true }); } catch (e) {} }
   $$('.dlg').forEach(function (dlg) {
     dlg.addEventListener('click', function (e) { if (e.target === dlg || e.target.closest('[data-close]')) closeDlg(dlg); });
@@ -87,7 +102,7 @@
   /* ---------- header: mega menus, drawer ---------- */
   var items = $$('.nav__item');
   function closeMenus(except) { items.forEach(function (it) { if (it !== except) { it.classList.remove('open'); var b = $('.nav__btn', it); if (b && b.tagName === 'BUTTON') b.setAttribute('aria-expanded', 'false'); } }); }
-  function fitMega(it) { var m = $('.mega', it); if (!m) return; m.style.marginLeft = ''; var r = m.getBoundingClientRect(), vw = d.documentElement.clientWidth, sh = 0; if (r.right > vw - 24) sh = vw - 24 - r.right; if (r.left + sh < 24) sh = 24 - r.left; if (sh) m.style.marginLeft = Math.round(sh) + 'px'; }
+  function fitMega(it) { var m = $('.mega', it); if (!m) return; wake(m); m.style.marginLeft = ''; var r = m.getBoundingClientRect(), vw = d.documentElement.clientWidth, sh = 0; if (r.right > vw - 24) sh = vw - 24 - r.right; if (r.left + sh < 24) sh = 24 - r.left; if (sh) m.style.marginLeft = Math.round(sh) + 'px'; }
   items.forEach(function (it) {
     var btn = $('button.nav__btn', it); if (!btn) return; var timer;
     btn.addEventListener('click', function () { var o = !it.classList.contains('open'); closeMenus(it); fitMega(it); it.classList.toggle('open', o); btn.setAttribute('aria-expanded', o ? 'true' : 'false'); });
@@ -99,7 +114,7 @@
   d.addEventListener('click', function (e) { if (!e.target.closest('.nav__item')) closeMenus(); });
   var burger = $('.burger'), drawer = $('#drawer');
   // the phone menu: opening hides the sticky bar, closing brings it back (onScroll re-reads the state); Escape closes it
-  function setDrawer(o) { if (o) { var hb = $('.hdr') ? $('.hdr').getBoundingClientRect().bottom : 0; drawer.style.top = Math.max(0, Math.round(hb)) + 'px'; } drawer.classList.toggle('open', o); burger.setAttribute('aria-expanded', o ? 'true' : 'false'); d.documentElement.style.overflow = o ? 'hidden' : ''; d.body.classList.toggle('drawer-open', o); onScroll(); }
+  function setDrawer(o) { if (o) { wake(drawer); var hb = $('.hdr') ? $('.hdr').getBoundingClientRect().bottom : 0; drawer.style.top = Math.max(0, Math.round(hb)) + 'px'; } drawer.classList.toggle('open', o); burger.setAttribute('aria-expanded', o ? 'true' : 'false'); d.documentElement.style.overflow = o ? 'hidden' : ''; d.body.classList.toggle('drawer-open', o); onScroll(); }
   if (burger && drawer) {
     burger.addEventListener('click', function () { setDrawer(!drawer.classList.contains('open')); });
     d.addEventListener('keydown', function (e) { if (e.key === 'Escape' && drawer.classList.contains('open')) { setDrawer(false); try { burger.focus({ preventScroll: true }); } catch (x) {} } });
@@ -107,6 +122,7 @@
 
   /* ---------- headline split: words rise into the light ---------- */
   $$('.split').forEach(function (h) {
+    if (h.classList.contains('split--now')) return; // page headlines arrive split from the build and settle with CSS alone
     var i = 0;
     (function walk(node) {
       Array.prototype.slice.call(node.childNodes).forEach(function (c) {
@@ -120,11 +136,11 @@
   });
 
   /* ---------- reveals (observer + a settle sweep so a fast fling never leaves blanks) ---------- */
-  var REV = '[data-rv], .split, .ap[data-ap], .sep-terrace, .sep-blade, .sep-iris, .cant[data-cant], .col, .step, .steps, .foot__mark, .hero__ring';
+  var REV = '[data-rv], .split:not(.split--now), .ap[data-ap], .sep-terrace, .sep-blade, .sep-iris, .cant[data-cant], .col, .step, .steps, .foot__mark, .hero__ring';
   // an aperture opens only once its picture is decoded (never onto an empty frame); a card and the aperture inside it move as one
   function openAp(ap) {
     if (ap.classList.contains('open')) return; ap.classList.add('in');
-    var im = $('img', ap); var go = function () { ap.classList.add('open'); };
+    var im = $('img', ap); if (im && im.hasAttribute('data-src')) show(im); var go = function () { ap.classList.add('open'); };
     if (!im || (im.complete && im.naturalWidth)) return go();
     var done = false; var once = function () { if (!done) { done = true; go(); } };
     if (im.decode) im.decode().then(once, once); else im.addEventListener('load', once);
@@ -182,20 +198,21 @@
     if (ring && heroEl) heroEl.addEventListener('pointermove', function (e) { var x = e.clientX / w.innerWidth - 0.5, y = e.clientY / w.innerHeight - 0.5; ring.style.setProperty('--px', (x * 26).toFixed(1) + 'px'); ring.style.setProperty('--py', (y * 20).toFixed(1) + 'px'); });
   }
 
-  /* ---------- hero video: plays on phones (portrait file), poster under it, retry on first touch ---------- */
+  /* ---------- hero video: plays on phones (portrait file), poster under it, retry on first touch ----------
+     The poster image is the first screen; the video file only starts after the page has loaded, and not at all when the
+     visitor asked to save data or is on a 2G/3G connection (the poster stays). */
   var vid = $('.hero__media video');
-  if (vid) {
-    if (reduce) vid.remove();
-    else {
-      var tall = w.matchMedia('(max-width: 767px)').matches;
-      vid.src = new URL(vid.getAttribute(tall ? 'data-tall' : 'data-wide'), location.href).href;
-      vid.muted = true; vid.playsInline = true;
-      var play = function () { var p = vid.play(); if (p && p.then) p.then(function () { vid.classList.add('playing'); }).catch(function () {}); };
-      vid.addEventListener('playing', function () { vid.classList.add('playing'); });
-      play(); d.addEventListener('touchstart', play, { once: true, passive: true });
-      var vio = new IntersectionObserver(function (en) { en.forEach(function (x) { if (x.isIntersecting) play(); else vid.pause(); }); }); vio.observe(vid);
-    }
-  }
+  var cn = navigator.connection;
+  if (vid && (reduce || (cn && (cn.saveData || /2g|3g/.test(cn.effectiveType || ''))))) { vid.remove(); vid = null; }
+  if (vid) afterLoad(function () {
+    var tall = w.matchMedia('(max-width: 767px)').matches;
+    vid.src = new URL(vid.getAttribute(tall ? 'data-tall' : 'data-wide'), location.href).href;
+    vid.muted = true; vid.playsInline = true;
+    var play = function () { var p = vid.play(); if (p && p.then) p.then(function () { vid.classList.add('playing'); }).catch(function () {}); };
+    vid.addEventListener('playing', function () { vid.classList.add('playing'); });
+    play(); d.addEventListener('touchstart', play, { once: true, passive: true });
+    var vio = new IntersectionObserver(function (en) { en.forEach(function (x) { if (x.isIntersecting) play(); else vid.pause(); }); }); vio.observe(vid);
+  }, 600);
 
   /* ---------- deal deck ---------- */
   $$('.deck').forEach(function (deck) {
@@ -327,7 +344,13 @@
     var qIn = $('[data-f="q"]', shop), tSel = $('[data-f="type"]', shop), bSel = $('[data-f="brand"]', shop), sSel = $('[data-f="sort"]', shop), subs = $$('.subs button', shop);
     var params = new URLSearchParams(location.search); var page = 0, PER = 48, all = [], list = [];
     var sub = params.get('sub') || 'all';
-    load(shop.getAttribute('data-json')).then(function (j) {
+    // The first 48 cards arrive in the HTML. The full menu (search, filters, "show more") loads once the page has loaded,
+    // or at once when the address already asks for a filter; any control used before that waits for it.
+    var hasP = ['q', 'type', 'brand', 'sub', 'deals'].some(function (k) { return params.has(k); });
+    var ready = null;
+    function ensure() { if (!ready) ready = load(shop.getAttribute('data-json')).then(init).catch(function () { if (empty) { empty.classList.add('show'); } }); return ready; }
+    if (hasP) ensure(); else afterLoad(ensure, 300);
+    function init(j) {
       all = j.products || []; all.forEach(function (p) { qvData[p.id] = p; });
       if (bSel) { var brands = {}; all.forEach(function (p) { brands[p.b] = (brands[p.b] || 0) + 1; }); Object.keys(brands).sort(function (a, b) { return a.localeCompare(b); }).forEach(function (b) { var o = d.createElement('option'); o.value = b; o.textContent = b + ' (' + brands[b] + ')'; bSel.appendChild(o); }); }
       var pb = params.get('brand'); if (pb && bSel) { var cb = function (v) { return String(v || '').toLowerCase().replace(/[^a-z0-9]/g, ''); }; var P = cb(pb); var opts = Array.prototype.slice.call(bSel.options).filter(function (o) { return o.value; }); var m = opts.filter(function (o) { return cb(o.value) === P; })[0] || opts.filter(function (o) { var V = cb(o.value); return V.length > 3 && P.length > 3 && (P.indexOf(V) === 0 || V.indexOf(P) === 0); })[0]; if (m) bSel.value = m.value; else if (qIn && !params.get('q')) qIn.value = pb.replace(/-/g, ' '); }
@@ -336,19 +359,23 @@
       if (params.get('deals') === '1') shop.setAttribute('data-deals', '1');
       subs.forEach(function (b) { b.setAttribute('aria-pressed', b.getAttribute('data-sub') === sub ? 'true' : 'false'); });
       apply(true);
-    }).catch(function () { if (empty) { empty.classList.add('show'); } });
+    }
     function apply(first) {
       var q = qIn ? qIn.value.trim().toLowerCase() : '', ty = tSel ? tSel.value : '', br = bSel ? bSel.value : '', so = sSel ? sSel.value : 'featured', deals = shop.getAttribute('data-deals') === '1';
       var qw = q ? q.split(/\s+/).filter(Boolean) : [];
       list = all.filter(function (p) { var hay = (p.n + ' ' + p.b + ' ' + (p.s || '')).toLowerCase(); return (!qw.length || qw.every(function (x) { return hay.indexOf(x) >= 0; })) && (!ty || (p.s || '') === ty) && (!br || p.b === br) && (sub === 'all' || p.k === sub) && (!deals || p.d); });
       if (so === 'low') list.sort(function (a, b) { return (a.sp || a.p) - (b.sp || b.p); }); else if (so === 'high') list.sort(function (a, b) { return (b.sp || b.p) - (a.sp || a.p); }); else if (so === 'thc') list.sort(function (a, b) { return (b.tv || 0) - (a.tv || 0); }); else if (so === 'name') list.sort(function (a, b) { return a.n.localeCompare(b.n); });
+      // first pass with no filter: when the cards already on the page are the start of this list, keep them (no re-render, no image reload)
+      if (first && !hasP) { var ids = $$('.pc', grid).map(function (c) { return c.getAttribute('data-id'); }); if (ids.length && ids.every(function (id, k) { return list[k] && list[k].id === id; })) { page = Math.ceil(ids.length / PER); meta(); return; } }
       page = 0; grid.innerHTML = ''; render(); if (!first) { var u = new URL(location.href); ['q', 'type', 'brand', 'sub'].forEach(function (k) { u.searchParams.delete(k); }); if (q) u.searchParams.set('q', q); if (ty) u.searchParams.set('type', ty); if (br) u.searchParams.set('brand', slug(br)); if (sub !== 'all') u.searchParams.set('sub', sub); history.replaceState(null, '', u); }
     }
-    function render() { var slice = list.slice(page * PER, (page + 1) * PER); grid.insertAdjacentHTML('beforeend', slice.map(function (p, k) { return card(p, store, k); }).join('')); page++; var shown = Math.min(list.length, page * PER); if (cnt) cnt.innerHTML = t('shop.showing', { a: '<b>' + shown + '</b>', b: '<b>' + list.length + '</b>' }); if (more) more.parentNode.hidden = shown >= list.length; if (empty) empty.classList.toggle('show', !list.length); }
-    if (more) more.addEventListener('click', render);
-    [qIn, tSel, bSel, sSel].forEach(function (x) { if (x) x.addEventListener(x.tagName === 'INPUT' ? 'input' : 'change', function () { apply(); }); });
-    subs.forEach(function (b) { b.addEventListener('click', function () { sub = b.getAttribute('data-sub'); subs.forEach(function (x) { x.setAttribute('aria-pressed', x === b ? 'true' : 'false'); }); apply(); }); });
-    var clr = $('[data-clear]', shop); if (clr) clr.addEventListener('click', function () { if (qIn) qIn.value = ''; if (tSel) tSel.value = ''; if (bSel) bSel.value = ''; sub = 'all'; subs.forEach(function (x) { x.setAttribute('aria-pressed', x.getAttribute('data-sub') === 'all' ? 'true' : 'false'); }); shop.removeAttribute('data-deals'); apply(); });
+    function meta() { var shown = Math.min(list.length, page * PER); if (cnt) cnt.innerHTML = t('shop.showing', { a: '<b>' + shown + '</b>', b: '<b>' + list.length + '</b>' }); if (more) more.parentNode.hidden = shown >= list.length; if (empty) empty.classList.toggle('show', !list.length); }
+    function render() { var slice = list.slice(page * PER, (page + 1) * PER); grid.insertAdjacentHTML('beforeend', slice.map(function (p, k) { return card(p, store, k); }).join('')); page++; meta(); }
+    var later = function (fn) { return function () { ensure().then(fn); }; };
+    if (more) more.addEventListener('click', later(render));
+    [qIn, tSel, bSel, sSel].forEach(function (x) { if (x) x.addEventListener(x.tagName === 'INPUT' ? 'input' : 'change', later(function () { apply(); })); });
+    subs.forEach(function (b) { b.addEventListener('click', function () { sub = b.getAttribute('data-sub'); subs.forEach(function (x) { x.setAttribute('aria-pressed', x === b ? 'true' : 'false'); }); ensure().then(function () { apply(); }); }); });
+    var clr = $('[data-clear]', shop); if (clr) clr.addEventListener('click', function () { if (qIn) qIn.value = ''; if (tSel) tSel.value = ''; if (bSel) bSel.value = ''; sub = 'all'; subs.forEach(function (x) { x.setAttribute('aria-pressed', x.getAttribute('data-sub') === 'all' ? 'true' : 'false'); }); shop.removeAttribute('data-deals'); ensure().then(function () { apply(); }); });
   });
 
   /* ---------- rails filled from the selected store (home "on special", shop the post, brand pages) ---------- */
@@ -356,7 +383,8 @@
     var track = $('.rail__track', r) || r; var mode = r.getAttribute('data-rail-mode') || 'deals'; var kw = (r.getAttribute('data-rail-kw') || '').toLowerCase().split('|').filter(Boolean); var brand = (r.getAttribute('data-rail-brand') || '').toLowerCase();
     var store = r.getAttribute('data-store-of') === 'current' || !r.getAttribute('data-store-of') ? current() : r.getAttribute('data-store-of');
     r.setAttribute('data-store-of', store); r.setAttribute('data-json', store + '/all.json');
-    load(store + '/all.json').then(function (j) {
+    // the rail fills from the menu data once the page has loaded and the rail is near the screen
+    afterLoad(function () { nearView(r, function () { load(store + '/all.json').then(function (j) {
       var ps = j.products || []; ps.forEach(function (p) { qvData[p.id] = p; });
       var pick = ps.filter(function (p) { if (brand) return p.b.toLowerCase() === brand; if (mode === 'deals') return p.d && p.sp != null && p.sp < p.p; if (kw.length) return kw.some(function (k) { return (p.n + ' ' + p.b + ' ' + p.c).toLowerCase().indexOf(k) >= 0; }); return true; });
       if (mode === 'deals') pick.sort(function (a, b) { return (1 - b.sp / b.p) - (1 - a.sp / a.p); });
@@ -364,7 +392,7 @@
       if (!pick.length) { var hideEl = r.closest('[data-rail-section]'); if (hideEl) hideEl.hidden = true; return; }
       track.innerHTML = pick.map(function (p, k) { return card(p, store, k); }).join('');
       $$('[data-rail-count]', r.closest('section') || r).forEach(function (el) { el.textContent = pick.length; });
-    }).catch(function () { var hideEl = r.closest('[data-rail-section]'); if (hideEl) hideEl.hidden = true; });
+    }).catch(function () { var hideEl = r.closest('[data-rail-section]'); if (hideEl) hideEl.hidden = true; }); }); });
   });
 
   /* ---------- in-stock: every store, one search ---------- */

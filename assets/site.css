@@ -1,3 +1,23 @@
+/* self-hosted webfonts (Google Fonts, SIL Open Font License): latin and latin-ext subsets; the variable fonts carry every weight in one file */
+@font-face { font-family: 'Instrument Serif'; font-style: italic; font-weight: 400; font-display: swap; src: url(fonts/instrument-serif-italic-latin-ext.woff2) format('woff2'); unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF; }
+@font-face { font-family: 'Instrument Serif'; font-style: italic; font-weight: 400; font-display: swap; src: url(fonts/instrument-serif-italic-latin.woff2) format('woff2'); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family: 'Instrument Serif'; font-style: normal; font-weight: 400; font-display: swap; src: url(fonts/instrument-serif-latin-ext.woff2) format('woff2'); unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF; }
+@font-face { font-family: 'Instrument Serif'; font-style: normal; font-weight: 400; font-display: swap; src: url(fonts/instrument-serif-latin.woff2) format('woff2'); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family: 'Manrope'; font-style: normal; font-weight: 400 800; font-display: swap; src: url(fonts/manrope-latin-ext.woff2) format('woff2'); unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF; }
+@font-face { font-family: 'Manrope'; font-style: normal; font-weight: 400 800; font-display: swap; src: url(fonts/manrope-latin.woff2) format('woff2'); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family: 'Sora'; font-style: normal; font-weight: 700 800; font-display: swap; src: url(fonts/sora-latin-ext.woff2) format('woff2'); unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF; }
+@font-face { font-family: 'Sora'; font-style: normal; font-weight: 700 800; font-display: swap; src: url(fonts/sora-latin.woff2) format('woff2'); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family: 'Syne'; font-style: normal; font-weight: 600 800; font-display: swap; src: url(fonts/syne-latin-ext.woff2) format('woff2'); unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF; }
+@font-face { font-family: 'Syne'; font-style: normal; font-weight: 600 800; font-display: swap; src: url(fonts/syne-latin.woff2) format('woff2'); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+/* Metric-matched fallbacks (measured in Chrome against each web font, 2026-11-25): until the web fonts are in use, text is
+   set in a local face scaled to the same width and vertical metrics, so switching to the web fonts barely moves the
+   layout. Syne widens sharply at 800, so it has a face per weight band. Each local() face costs first-layout time, so only
+   the faces that move layout are kept: Syne (headlines) and Instrument Serif italic (the italic words in headlines);
+   body text and prices fall back to plain Arial, already within 1-7% of Manrope and Sora. */
+@font-face { font-family: 'Syne Fallback'; font-weight: 100 700; src: local('Arial Bold'), local('Arial-BoldMT'), local('Roboto Bold'); size-adjust: 113.44%; ascent-override: 81.98%; descent-override: 24.68%; line-gap-override: 0%; }
+@font-face { font-family: 'Syne Fallback'; font-weight: 800 900; src: local('Arial Bold'), local('Arial-BoldMT'), local('Roboto Bold'); size-adjust: 165.19%; ascent-override: 56.3%; descent-override: 16.95%; line-gap-override: 0%; }
+@font-face { font-family: 'Instrument Serif Fallback'; font-style: italic; src: local('Times New Roman Italic'), local('TimesNewRomanPS-ItalicMT'), local('Noto Serif Italic'); size-adjust: 85.11%; ascent-override: 116.32%; descent-override: 36.42%; line-gap-override: 0%; }
+
 /* Wellgreens preview: "Emerald Aperture". Light enters through geometric openings.
    core.css: tokens, base type, chrome (header, mega, drawer, footer, sticky bar, age gate, dialogs), motion system. */
 :root {
@@ -90,7 +110,7 @@ p { margin: 0 0 1em; }
 /* ---------- headline motion: words rise into the light (no light sweeps over text) ---------- */
 .split .w { display: inline-block; perspective: 700px; }
 .split .wi { display: inline-block; transform-origin: 50% 100%; }
-.js .split:not(.in) .wi { opacity: 0; transform: translate3d(0, .55em, 0) rotateX(-68deg); filter: blur(7px); }
+.js .split:not(.in):not(.split--now) .wi { opacity: 0; transform: translate3d(0, .55em, 0) rotateX(-68deg); filter: blur(7px); }
 .js .split.in .wi { opacity: 1; transform: none; filter: none; transition: opacity .7s var(--e-out), transform 1s var(--e-out), filter .8s var(--e-out); transition-delay: calc(var(--i, 0) * 60ms); }
 .js .split em.wi { transition-delay: calc(var(--i, 0) * 60ms + 90ms); }
 .nw { white-space: nowrap; }
@@ -167,7 +187,7 @@ p { margin: 0 0 1em; }
 .hdr { position: sticky; top: 0; z-index: 50; height: var(--hdr); color: var(--tx-l); transition: background .4s, box-shadow .4s, color .3s; }
 .hdr::before { content: ''; position: absolute; inset: 0; background: rgba(6, 17, 12, .72); -webkit-backdrop-filter: blur(18px) saturate(150%); backdrop-filter: blur(18px) saturate(150%); border-bottom: 1px solid rgba(255, 255, 255, .07); }
 .hdr__in { position: relative; height: 100%; max-width: 1480px; margin: 0 auto; padding: 0 var(--gut); display: flex; align-items: center; gap: 22px; }
-.logo { display: block; width: 176px; aspect-ratio: 1200 / 190; background: currentColor; -webkit-mask: url(img/logo-mask.png) center / contain no-repeat; mask: url(img/logo-mask.png) center / contain no-repeat; flex: none; }
+.logo { display: block; width: 176px; aspect-ratio: 1200 / 190; background: currentColor; -webkit-mask: url(img/logo-mask-sm.webp) center / contain no-repeat; mask: url(img/logo-mask-sm.webp) center / contain no-repeat; flex: none; }
 .hdr__logo { color: var(--tx-l); display: block; padding: 8px 0; }
 .nav { display: flex; align-items: center; gap: 2px; margin-left: 10px; }
 .nav__item { position: relative; }
@@ -240,7 +260,7 @@ p { margin: 0 0 1em; }
 .foot__stores { margin-top: 64px; padding-top: 40px; border-top: 1px solid rgba(255, 255, 255, .08); display: grid; grid-template-columns: repeat(5, 1fr); gap: 22px 28px; }
 .foot__stores a { display: block; font-size: .86rem; line-height: 1.45; color: #b6cbbf; }
 .foot__stores b { display: block; color: #fff; font: 700 .95rem/1.2 var(--f-display); margin-bottom: 4px; }
-.foot__mark { display: block; margin: clamp(60px, 7vw, 100px) auto 0; width: min(1200px, 92vw); aspect-ratio: 1200 / 190; background: linear-gradient(180deg, #2f9c74 0%, #13402f 70%, #0a2219 100%); -webkit-mask: url(img/logo-mask.png) center / contain no-repeat; mask: url(img/logo-mask.png) center / contain no-repeat; opacity: .9; }
+.foot__mark { display: block; margin: clamp(60px, 7vw, 100px) auto 0; width: min(1200px, 92vw); aspect-ratio: 1200 / 190; background: linear-gradient(180deg, #2f9c74 0%, #13402f 70%, #0a2219 100%); -webkit-mask: url(img/logo-mask.webp) center / contain no-repeat; mask: url(img/logo-mask.webp) center / contain no-repeat; opacity: .9; }
 .js .foot__mark:not(.in) { transform: translateY(40%); opacity: 0; }
 .js .foot__mark.in { transition: transform 1.4s var(--e-out), opacity 1.2s; }
 .foot__legal { margin-top: 36px; padding: 26px 0 120px; border-top: 1px solid rgba(255, 255, 255, .08); font-size: .8rem; line-height: 1.6; color: #93ab9e; }
@@ -1514,10 +1534,15 @@ ul.hl li::before { content: ''; position: absolute; left: 3px; top: .55em; width
 .sbar__txt .sbar__s { display: none !important; }
 .sbar__txt .sbar__l { display: inline !important; }
 @media (max-width: 560px) { .sbar__txt .sbar__l { display: none !important; } .sbar__txt .sbar__s { display: inline !important; } }
-/* heroes: no curtains; the image fades in on its placeholder colour as soon as it decodes */
+/* heroes are the page's main content: no curtains and no fade, so they count as painted the moment they arrive
+   (Largest Contentful Paint). The picture settles from a slight zoom on its placeholder colour: transform only. */
 .phero .ap .ap__edge, .storehero .ap .ap__edge, .menuhero .ap .ap__edge { display: none !important; }
-.js .phero .ap[data-ap]:not(.open) > img { opacity: 0; transform: scale(1.03); }
-.js .phero .ap[data-ap].open > img { opacity: 1; transform: none; transition: opacity .45s var(--ez), transform 1.1s var(--ez) !important; }
+.phero .ap > img { animation: heroSettle 1.6s var(--e-out) both; }
+@keyframes heroSettle { from { transform: scale(1.07); } to { transform: none; } }
+/* page headlines arrive split from the build (split--now): every word is visible at the first paint and settles from a
+   soft tilt and blur, CSS only; the script-driven reveal (opacity) stays for headings further down the page */
+.split--now .wi { animation: wordSettle .95s var(--e-out) both; animation-delay: calc(var(--i, 0) * 45ms); }
+@keyframes wordSettle { from { transform: translate3d(0, .3em, 0) rotateX(-40deg); filter: blur(5px); } to { transform: none; filter: none; } }
 /* resource cards: one motion (the card rises with its picture; no separate doors) */
 .acards .ap__edge { display: none !important; }
 .js .acards .ap[data-ap] > img { transform: none !important; }
@@ -1552,3 +1577,28 @@ ul.hl li::before { content: ''; position: absolute; left: 3px; top: .55em; width
 .phero__media--banner .phero__obj { right: auto; left: -9%; bottom: -24%; width: 28%; }
 /* promise cards: no icon tiles; the title starts just below the big numeral */
 .fin { padding-top: calc(clamp(3.6rem, 6vw, 5.6rem) + 30px) !important; }
+/* ---------- load speed ---------- */
+/* closed panels are not laid out until they open (phone menu, store picker and the other dialogs), so the first paint
+   lays out only the page; on close their contents stay until the slide or fade has finished */
+.drawer:not(.open), .dlg:not(.open) { content-visibility: hidden; }
+.drawer { transition: transform .45s var(--e-out), visibility 0s .45s, content-visibility 0s .45s allow-discrete; }
+.dlg { transition: opacity .3s, visibility 0s .3s, content-visibility 0s .3s allow-discrete; }
+/* the footer (already clipped by its own overflow) is laid out when it nears the screen */
+.foot { content-visibility: auto; contain-intrinsic-size: auto 1100px; }
+/* Web fonts come into use with html.wf. On a first visit the head script adds it right after the first paint, so the fonts
+   never compete with the first screen on a slow connection; once they are cached it adds it at once (no swap at all).
+   Until then the metric-matched fallbacks (fonts.css) hold the same space. */
+:root { --f-display: 'Syne Fallback', Arial, sans-serif; --f-accent: 'Instrument Serif Fallback', 'Times New Roman', Georgia, serif; --f-body: Arial, Helvetica, system-ui, sans-serif; --f-num: Arial, Helvetica, system-ui, sans-serif; }
+:root.wf { --f-display: 'Syne', 'Syne Fallback', Arial, sans-serif; --f-accent: 'Instrument Serif', 'Instrument Serif Fallback', 'Times New Roman', Georgia, serif; --f-body: 'Manrope', Arial, Helvetica, system-ui, sans-serif; --f-num: 'Sora', 'Manrope', Arial, Helvetica, system-ui, sans-serif; }
+/* the hero deal card (first-time customers, app) paints at once and rises into place: transform only, so it counts as
+   painted the moment it arrives; its swivel runs inside as before */
+.dcard-wrap--big { animation: cardRise 1.1s var(--e-out) both; }
+@keyframes cardRise { from { transform: translate3d(0, 26px, 0) scale(.95); } to { transform: none; } }
+/* the age gate opens from a fixed top edge rather than centred, so text settling into the web fonts never moves the box */
+.gate { place-items: start center; padding-top: max(18px, 9vh); }
+/* phones: the promo bar keeps its two-line height whichever font is in use (it wraps in Spanish, and in English while the
+   wider fallback font is showing), so the page below never moves when the web fonts arrive */
+@media (max-width: 560px) { .promo a { min-height: 44px; padding-top: 8px; padding-bottom: 8px; } }
+/* age gate store buttons: one height for one or two lines of name, so the grid never reflows when the web fonts arrive */
+.gate__grid button { min-height: 64px; display: flex; flex-direction: column; justify-content: center; }
+@media (max-width: 420px) { .gate__grid button { min-height: 50px; } }
